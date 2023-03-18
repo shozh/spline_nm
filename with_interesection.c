@@ -26,11 +26,9 @@ double* solve_cubic_eq(double a, double b, double c, double d) {
     double g = ((2 * b * b * b)/(a * a * a) - (9 * b * c)/(a * a) + (27 * d)/a)/27;
     double h = (g * g / 4) + (f * f * f)/27;
     double i = sqrt(g * g / 4 - h);
-    printf("h %lf\n", h);
-printf("f %lf\n", f);
-    printf("f %lf\n", g);
+    double* ret = (double*)malloc(3 * sizeof(double));
 
-// all 3 roots are real
+    // all 3 roots are real
     if (h <= 0) {
         double j = cbrt(i);
         double k = acos(-g / (2 * i));
@@ -38,54 +36,24 @@ printf("f %lf\n", f);
         double m = cos(k/3);
         double n = sqrt(3) * sin(k/3);
         double p = -(b/(3*a));
-        double* ret = (double*)malloc(3 * sizeof(double));
-
-#ifdef Te
-        printf("j: %.2lf\n", j);
-        printf("k: %.2lf\n", k);
-        printf("m: %.2lf\n", m);
-        printf("n: %.2lf\n", n);
-        printf("p: %.2lf\n", p);
-
-#endif
         ret[0] = 2 * j * cos(k/3)-(b/(3*a));
         ret[1] = l * (m + n) + p;
         ret[2] = l * (m - n) + p;
         return ret;
     }
-// only 1 root is real
+    // only 1 root is real
     if (h > 0) {
         double R = -g/2 + sqrt(h);
         double S = cbrt(R);
         double T = -(g/2) - sqrt(h);
         double U = cbrt(T);
-#ifdef Te
-        printf("R: %.2lf\n", R);
-        printf("S: %.2lf\n", S);
-        printf("T: %.2lf\n", T);
-        printf("U: %.2lf\n", U);
-        printf("h: %.2lf\n", h);
-#endif
-
-        double* ret = (double*)malloc(3 * sizeof(double));
         double xx = (S + U) - (b/(3 * a));
         ret[0] = xx;
         ret[1] = xx;
         ret[2] = xx;
- //       printf("helllo\n");
         return ret;
     }
-// when all 3 roots are real and equal
-    if (f == 0 and g == 0 and h == 0) {
-
-        double* ret = (double*)malloc(3 * sizeof(double));
-        double x = -cbrt(d/a);
-        ret[0] = x;
-        ret[1] = x;
-        ret[2] = x;
-        printf("helllo");
-        return ret;
-    }
+    // when all 3 roots are real and equal
 }
 
 double* solve_sq_eq(double a, double b, double c) {
@@ -257,6 +225,7 @@ int Program() {
                             if ((left_border <= R[k]) and (R[k] <= right_border)) {
                                 print_array(a, 4);
                                 print_array(b, 4);
+                                printf("coefs: %lf, %lf, %lf, %lf\n", A, B, C, D);
                                 printf("left: %lf, right: %lf\n", left_border, right_border);
                                 printf("D1[i-1]: %lf, D1[i], %lf\n", D1[i-1], D1[i]);
                                 printf("D2[i-1]: %lf, D2[i], %lf\n", D2[i-1], D2[i]);
