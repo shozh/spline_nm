@@ -123,7 +123,7 @@ int main() {
             break;
         printf("Runge(%.3lf) = %.3lf\n", x,  runge(x));
         printf("Spline(%.3lf) = %.3lf\n", x, Spline(x, D, E, N));
-        printf("Delta = %.3lf\n", Spline(x, D, E, N) - runge(x));
+        printf("Delta = %.3lf\n", fabs(Spline(x, D, E, N) - runge(x)));
     }
 
     return 0;

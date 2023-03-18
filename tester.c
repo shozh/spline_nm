@@ -1,10 +1,16 @@
 void print_array(double* A, int N) {
+    printf("coefs of array: ");
     for (int i = 0; i < N; i++)
         printf("%.3lf ", A[i]);
     printf("\n");
 }
 
-
+void print_roots(double* A, int N) {
+    printf("roots: ");
+    for (int i = 0; i < N; i++)
+        printf("%.3lf ", A[i]);
+    printf("\n");
+}
 
 #ifdef T
 #include <stdio.h>

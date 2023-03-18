@@ -2,43 +2,88 @@
 #include <stdlib.h>
 #include <iso646.h>
 #include <math.h>
+#include "tester.c"
+#define Te 1
+
+double h(double x) {
+    return (1/(5 - tan(x)));
+}
+
+double t(double x) {
+    return (1/(1+x));
+}
+
+double f(double x) {
+    return 1/(1 + x*x);
+}
+
+double g(double x) {
+    return 1/(1 + exp(-x));
+}
 
 double* solve_cubic_eq(double a, double b, double c, double d) {
     double f = ((3 * c / a) - (b*b/(a * a)))/3;
     double g = ((2 * b * b * b)/(a * a * a) - (9 * b * c)/(a * a) + (27 * d)/a)/27;
     double h = (g * g / 4) + (f * f * f)/27;
-    double i = pow(g * g / 4 - h, 0.5);
+    double i = sqrt(g * g / 4 - h);
+    printf("h %lf\n", h);
+printf("f %lf\n", f);
+    printf("f %lf\n", g);
 
+// all 3 roots are real
     if (h <= 0) {
-        double j = pow(i, 0.333333);
+        double j = cbrt(i);
         double k = acos(-g / (2 * i));
         double l = -j;
         double m = cos(k/3);
-        double n = pow(1, 0.333333) * sin(k/3);
+        double n = sqrt(3) * sin(k/3);
         double p = -(b/(3*a));
         double* ret = (double*)malloc(3 * sizeof(double));
+
+#ifdef Te
+        printf("j: %.2lf\n", j);
+        printf("k: %.2lf\n", k);
+        printf("m: %.2lf\n", m);
+        printf("n: %.2lf\n", n);
+        printf("p: %.2lf\n", p);
+
+#endif
         ret[0] = 2 * j * cos(k/3)-(b/(3*a));
         ret[1] = l * (m + n) + p;
         ret[2] = l * (m - n) + p;
         return ret;
     }
+// only 1 root is real
     if (h > 0) {
-        double R = -g/2 + pow(h, 0.5);
-        double S = pow(R, 0.3333333);
-        double T = -(g/2) - pow(h, 0.5);
-        double U = pow(T, (double)1/3);
+        double R = -g/2 + sqrt(h);
+        double S = cbrt(R);
+        double T = -(g/2) - sqrt(h);
+        double U = cbrt(T);
+#ifdef Te
+        printf("R: %.2lf\n", R);
+        printf("S: %.2lf\n", S);
+        printf("T: %.2lf\n", T);
+        printf("U: %.2lf\n", U);
+        printf("h: %.2lf\n", h);
+#endif
+
         double* ret = (double*)malloc(3 * sizeof(double));
-        ret[0] = (S + U) - (b/(3 * a));
-        ret[1] = -(S + U)/2 - (b/(3 * a)) + i * (S - U) * sqrt(3) / 2;
-        ret[2] = -(S + U)/2 - (b/(3 * a)) - i * (S - U) * sqrt(3) / 2;
+        double xx = (S + U) - (b/(3 * a));
+        ret[0] = xx;
+        ret[1] = xx;
+        ret[2] = xx;
+ //       printf("helllo\n");
         return ret;
     }
+// when all 3 roots are real and equal
     if (f == 0 and g == 0 and h == 0) {
+
         double* ret = (double*)malloc(3 * sizeof(double));
-        double x = -pow(d/a, (double)1/3);
+        double x = -cbrt(d/a);
         ret[0] = x;
         ret[1] = x;
         ret[2] = x;
+        printf("helllo");
         return ret;
     }
 }
@@ -159,22 +204,34 @@ typedef struct {
     double x;
 } polynom;
 
-double min(double x, double y) {
+double max(double x, double y) {
     return x > y ? x : y;
 }
 
-double max(double x, double y) {
+double min(double x, double y) {
     return x < y ? x : y;
 }
 
-int main() {
+int Program() {
 
     const int N = 7;
-    const int M = 7;
+    const int M = 10;
     double *D1 = (double *) malloc(N * sizeof(double));
     double *E1 = (double *) malloc(N * sizeof(double));
     double *D2 = (double *) malloc(M * sizeof(double));
     double *E2 = (double *) malloc(M * sizeof(double));
+
+    for (int i = 0, j = -2; i < N; i++, j++)
+        D1[i] = j;
+
+    for (int i = 0; i < N; i++)
+        E1[i] = f(D1[i]);
+
+    for (int i = 0; i < M; i++)
+        D2[i] = i;
+
+    for (int i = 0; i < M; i++)
+        E2[i] = g(D2[i]);
 
     if ((D2[0] <= D1[N - 1]) or (D1[0] <= D2[N - 1])) {
         for (int i = 1; i < N; i++) {
@@ -188,17 +245,30 @@ int main() {
                     double B = a[1] - b[1];
                     double C = a[2] - b[2];
                     double D = a[3] - b[3];
-                    double *R;
                     if (A != 0) {
-                        R = solve_cubic_eq(A, B, C, D);
+                        double *R = solve_cubic_eq(A, B, C, D);
+                        printf("coefs: %lf, %lf, %lf, %lf\n", A, B, C, D);
+                        printf("left: %lf, right: %lf\n", left_border, right_border);
+                        printf("D1[i-1]: %lf, D1[i], %lf\n", D1[i-1], D1[i]);
+                        printf("D2[i-1]: %lf, D2[i], %lf\n", D2[i-1], D2[i]);
+                        print_roots(R, 3);
+                        puts("");
                         for (int k = 0; k < 3; k++) {
-                            if (left_border <= R[k] and R[k] <= right_border) {
-                                printf("(%lf, %lf)", R[k], Spline(R[k], D1, E1, N));
+                            if ((left_border <= R[k]) and (R[k] <= right_border)) {
+                                print_array(a, 4);
+                                print_array(b, 4);
+                                printf("left: %lf, right: %lf\n", left_border, right_border);
+                                printf("D1[i-1]: %lf, D1[i], %lf\n", D1[i-1], D1[i]);
+                                printf("D2[i-1]: %lf, D2[i], %lf\n", D2[i-1], D2[i]);
+                                printf("(%lf, %lf)\n", R[k], Spline(R[k], D1, E1, N));
+                                printf("(%lf, %lf)", R[k], Spline(R[k], D2, E2, M));
                                 return 0;
                             }
                         }
                     } else if (B != 0) {
-                        R = solve_sq_eq(B, C, D);
+                        double* R = solve_sq_eq(B, C, D);
+                        if (R[0] == 55.5)
+                            continue;
                         for (int k = 0; k < 2; k++) {
                             if (left_border <= R[k] and R[k] <= right_border) {
                                 printf("(%lf, %lf)", R[k], Spline(R[k], D1, E1, N));
@@ -212,9 +282,6 @@ int main() {
                             return 0;
                         }
                     }
-
-
-                    return 0;
                 }
             }
         }
@@ -222,5 +289,14 @@ int main() {
     } else {
         printf("There doesn't exist any intersection between these two splines within borders");
     }
+}
+
+int main(void) {
+    int ret = Program();
+    //double* R = solve_sq_eq(1, 0, -16);
+    //printf("%.2lf, %.2lf", R[0], R[1]);
+   //  double* R = solve_cubic_eq(-0.970066, 1.234188, -0.458725, -0.014917);
+   //printf("%.2lf, %.2lf, %.2lf", R[0], R[1], R[2]);
+
     return 0;
 }
