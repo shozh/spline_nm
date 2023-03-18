@@ -7,9 +7,9 @@ double* solve_cubic_eq(double a, double b, double c, double d) {
     double f = ((3 * c / a) - (b*b/(a * a)))/3;
     double g = ((2 * b * b * b)/(a * a * a) - (9 * b * c)/(a * a) + (27 * d)/a)/27;
     double h = (g * g / 4) + (f * f * f)/27;
+    double i = pow(g * g / 4 - h, 0.5);
 
     if (h <= 0) {
-        double i = pow(g * g / 4 - h, 0.5);
         double j = pow(i, 0.333333);
         double k = acos(-g / (2 * i));
         double l = -j;
@@ -22,9 +22,43 @@ double* solve_cubic_eq(double a, double b, double c, double d) {
         ret[2] = l * (m - n) + p;
         return ret;
     }
-    if (h > 0)
+    if (h > 0) {
+        double R = -g/2 + pow(h, 0.5);
+        double S = pow(R, 0.3333333);
+        double T = -(g/2) - pow(h, 0.5);
+        double U = pow(T, (double)1/3);
+        double* ret = (double*)malloc(3 * sizeof(double));
+        ret[0] = (S + U) - (b/(3 * a));
+        ret[1] = -(S + U)/2 - (b/(3 * a)) + i * (S - U) * sqrt(3) / 2;
+        ret[2] = -(S + U)/2 - (b/(3 * a)) - i * (S - U) * sqrt(3) / 2;
+        return ret;
+    }
+    if (f == 0 and g == 0 and h == 0) {
+        double* ret = (double*)malloc(3 * sizeof(double));
+        double x = -pow(d/a, (double)1/3);
+        ret[0] = x;
+        ret[1] = x;
+        ret[2] = x;
+        return ret;
+    }
 }
 
+double* solve_sq_eq(double a, double b, double c) {
+    double D = b * b - 4 * a * c;
+    double* ret = (double*)malloc(2 * sizeof(double));
+    if (D < 0) {
+        ret[0] = 55.5;
+        ret[1] = 55.5;
+        return ret;
+    }
+    else {
+        double x1 = (-b + sqrt(D))/(2 * a);
+        double x2 = (-b - sqrt(D))/(2 * a);
+        ret[0] = x1;
+        ret[1] = x2;
+        return ret;
+    }
+}
 
 double* tridiagonal_matrix_algorithm(double* a, double* b, double* c, double* d, int n) {
     double* x = (double*)malloc(n * sizeof(double));
@@ -148,6 +182,28 @@ int main() {
                 double left_border = max(D1[i - 1], D2[j - 1]);
                 double right_border = min(D1[i], D2[j]);
                 if (left_border <= right_border) {
+                    double* a = get_coefs(i, D1, E1, N);
+                    double* b = get_coefs(j, D2, E2, M);
+                    double A = a[0] - b[0];
+                    double B = a[1] - b[1];
+                    double C = a[2] - b[2];
+                    double D = a[3] - b[3];
+                    double* R;
+                    if (A != 0) {
+                        R = solve_cubic_eq(A, B, C, D);
+                        for (int k = 0; k < 3; k++) {
+                            if (left_border <= R[k] and R[k] <= right_border) {
+                                printf("(%lf, %lf)", R[k], Spline(R[k], D1, E1, N));
+                                return 0;
+                            }
+                        }
+                    }
+                    else if (B != 0) {
+                        R = solve_sq_eq(B, C, D);
+                    }
+                    else if (C != 0) {
+                        double v = C / D;
+                    }
 
                 }
             }
