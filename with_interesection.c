@@ -171,10 +171,10 @@ int main() {
 
     const int N = 7;
     const int M = 7;
-    double* D1 = (double*)malloc(N * sizeof(double));
-    double* E1 = (double*)malloc(N * sizeof(double));
-    double* D2 = (double*)malloc(M * sizeof(double));
-    double* E2 = (double*)malloc(M * sizeof(double));
+    double *D1 = (double *) malloc(N * sizeof(double));
+    double *E1 = (double *) malloc(N * sizeof(double));
+    double *D2 = (double *) malloc(M * sizeof(double));
+    double *E2 = (double *) malloc(M * sizeof(double));
 
     if ((D2[0] <= D1[N - 1]) or (D1[0] <= D2[N - 1])) {
         for (int i = 1; i < N; i++) {
@@ -182,13 +182,13 @@ int main() {
                 double left_border = max(D1[i - 1], D2[j - 1]);
                 double right_border = min(D1[i], D2[j]);
                 if (left_border <= right_border) {
-                    double* a = get_coefs(i, D1, E1, N);
-                    double* b = get_coefs(j, D2, E2, M);
+                    double *a = get_coefs(i, D1, E1, N);
+                    double *b = get_coefs(j, D2, E2, M);
                     double A = a[0] - b[0];
                     double B = a[1] - b[1];
                     double C = a[2] - b[2];
                     double D = a[3] - b[3];
-                    double* R;
+                    double *R;
                     if (A != 0) {
                         R = solve_cubic_eq(A, B, C, D);
                         for (int k = 0; k < 3; k++) {
@@ -197,22 +197,30 @@ int main() {
                                 return 0;
                             }
                         }
-                    }
-                    else if (B != 0) {
+                    } else if (B != 0) {
                         R = solve_sq_eq(B, C, D);
-                    }
-                    else if (C != 0) {
+                        for (int k = 0; k < 2; k++) {
+                            if (left_border <= R[k] and R[k] <= right_border) {
+                                printf("(%lf, %lf)", R[k], Spline(R[k], D1, E1, N));
+                                return 0;
+                            }
+                        }
+                    } else if (C != 0) {
                         double v = C / D;
+                        if (left_border <= v and v <= right_border) {
+                            printf("(%lf, %lf)", v, Spline(v, D1, E1, N));
+                            return 0;
+                        }
                     }
 
+
+                    return 0;
                 }
             }
-
         }
-
+        printf("There doesn't exist any intersection between these two splines within borders");
     } else {
-        printf("There doesn't exist any intersection between these two splines within borders")
+        printf("There doesn't exist any intersection between these two splines within borders");
     }
-
     return 0;
 }
