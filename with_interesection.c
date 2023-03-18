@@ -1,12 +1,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iso646.h>
-#include "tester.c"
 #include <math.h>
 
-double runge(double x) {
-    return 1 / (1 + x * x);
+double* solve_cubic_eq(double a, double b, double c, double d) {
+    double f = ((3 * c / a) - (b*b/(a * a)))/3;
+    double g = ((2 * b * b * b)/(a * a * a) - (9 * b * c)/(a * a) + (27 * d)/a)/27;
+    double h = (g * g / 4) + (f * f * f)/27;
+
+    if (h <= 0) {
+        double i = pow(g * g / 4 - h, 0.5);
+        double j = pow(i, 0.333333);
+        double k = acos(-g / (2 * i));
+        double l = -j;
+        double m = cos(k/3);
+        double n = pow(1, 0.333333) * sin(k/3);
+        double p = -(b/(3*a));
+        double* ret = (double*)malloc(3 * sizeof(double));
+        ret[0] = 2 * j * cos(k/3)-(b/(3*a));
+        ret[1] = l * (m + n) + p;
+        ret[2] = l * (m - n) + p;
+        return ret;
+    }
+    if (h > 0)
 }
+
 
 double* tridiagonal_matrix_algorithm(double* a, double* b, double* c, double* d, int n) {
     double* x = (double*)malloc(n * sizeof(double));
@@ -98,32 +116,46 @@ double Spline(double x, double* D, double* E, int N) {
     }
 }
 
+typedef struct {
+    double begin;
+    double end;
+} segment;
+
+typedef struct {
+    double x;
+} polynom;
+
+double min(double x, double y) {
+    return x > y ? x : y;
+}
+
+double max(double x, double y) {
+    return x < y ? x : y;
+}
+
 int main() {
 
     const int N = 7;
+    const int M = 7;
+    double* D1 = (double*)malloc(N * sizeof(double));
+    double* E1 = (double*)malloc(N * sizeof(double));
+    double* D2 = (double*)malloc(M * sizeof(double));
+    double* E2 = (double*)malloc(M * sizeof(double));
 
-    double* D = (double*)malloc(N * sizeof(double));
-    for (int i = 0; i < N; i++)
-        D[i] = i;
+    if ((D2[0] <= D1[N - 1]) or (D1[0] <= D2[N - 1])) {
+        for (int i = 1; i < N; i++) {
+            for (int j = 1; j < M; j++) {
+                double left_border = max(D1[i - 1], D2[j - 1]);
+                double right_border = min(D1[i], D2[j]);
+                if (left_border <= right_border) {
 
-    double* E = (double*)malloc(N * sizeof(double));
-    for (int i = 0; i < N; i++)
-        E[i] = runge(i);
+                }
+            }
 
-    for (int i = 1; i < N; i++) {
-        double* a = get_coefs(i, D, E, N);
-        printf("P_%d(x) = %.3lfx^3 + %.3lfx^2 + %.3lfx + %.3lf, if %.3lf<=x<=%.3lf\n", i, a[3], a[2], a[1], a[0], D[i-1], D[i]);
-    }
+        }
 
-    while (1) {
-        printf("Input x_0 within D (Input 0 to exit)\n");
-        double x;
-        scanf("%lf", &x);
-        if (!x)
-            break;
-        printf("Runge(%.3lf) = %.3lf\n", x,  runge(x));
-        printf("Spline(%.3lf) = %.3lf\n", x, Spline(x, D, E, N));
-        printf("Delta = %.3lf\n", Spline(x, D, E, N) - runge(x));
+    } else {
+        printf("There doesn't exist any intersection between these two splines within borders")
     }
 
     return 0;
