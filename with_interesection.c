@@ -4,6 +4,9 @@
 #include <math.h>
 #include "tester.c"
 #define Te 1
+#define M_PI 3.141592653589793
+#define M_2PI 2. * M_PI
+
 
 double h(double x) {
     return (1/(5 - tan(x)));
@@ -21,7 +24,7 @@ double g(double x) {
     return 1/(1 + exp(-x));
 }
 
-double* solve_cubic_eq(double a, double b, double c, double d) {
+double* solve_cubic_eq_not_worked(double a, double b, double c, double d) {
     double f = ((3 * c / a) - (b*b/(a * a)))/3;
     double g = ((2 * b * b * b)/(a * a * a) - (9 * b * c)/(a * a) + (27 * d)/a)/27;
     double h = (g * g / 4) + (f * f * f)/27;
@@ -54,6 +57,33 @@ double* solve_cubic_eq(double a, double b, double c, double d) {
         return ret;
     }
     // when all 3 roots are real and equal
+}
+
+int solve_cubic_eq(double* x,double a,double b,double c) {
+    double q,r,r2,q3;
+    q=(a*a-3.*b)/9.; r=(a*(2.*a*a-9.*b)+27.*c)/54.;
+    r2=r*r; q3=q*q*q;
+    if(r2<q3) {
+        double t=acos(r/sqrt(q3));
+        a/=3.; q=-2.*sqrt(q);
+        x[0]=q*cos(t/3.)-a;
+        x[1]=q*cos((t+M_2PI)/3.)-a;
+        x[2]=q*cos((t-M_2PI)/3.)-a;
+        return(3);
+    }
+    else {
+        double aa,bb;
+        if(r<=0.) r=-r;
+        aa=-pow(r+sqrt(r2-q3),1./3.);
+        if(aa!=0.) bb=q/aa;
+        else bb=0.;
+        a/=3.; q=aa+bb; r=aa-bb;
+        x[0]=q-a;
+        x[1]=(-0.5)*q-a;
+        x[2]=(sqrt(3.)*0.5)*fabs(r);
+        if(x[2]==0.) return(2);
+        return(1);
+    }
 }
 
 double* solve_sq_eq(double a, double b, double c) {
@@ -163,15 +193,6 @@ double Spline(double x, double* D, double* E, int N) {
     }
 }
 
-typedef struct {
-    double begin;
-    double end;
-} segment;
-
-typedef struct {
-    double x;
-} polynom;
-
 double max(double x, double y) {
     return x > y ? x : y;
 }
@@ -214,26 +235,35 @@ int Program() {
                     double C = a[2] - b[2];
                     double D = a[3] - b[3];
                     if (A != 0) {
-                        double *R = solve_cubic_eq(A, B, C, D);
-                        printf("coefs: %lf, %lf, %lf, %lf\n", A, B, C, D);
-                        printf("left: %lf, right: %lf\n", left_border, right_border);
-                        printf("D1[i-1]: %lf, D1[i], %lf\n", D1[i-1], D1[i]);
-                        printf("D2[i-1]: %lf, D2[i], %lf\n", D2[i-1], D2[i]);
-                        print_roots(R, 3);
-                        puts("");
-                        for (int k = 0; k < 3; k++) {
-                            if ((left_border <= R[k]) and (R[k] <= right_border)) {
+                        double R[3] = {0, 0, 0};
+                        int nums = solve_cubic_eq(R, B/A, C/A, D/A);
+                        if (nums == 3)
+                            for (int k = 0; k < 3; k++) {
+                                if ((left_border <= R[k]) and (R[k] <= right_border)) {
+                                    print_array(a, 4);
+                                    print_array(b, 4);
+                                    printf("coefs: %lf, %lf, %lf, %lf\n", A, B, C, D);
+                                    printf("left: %lf, right: %lf\n", left_border, right_border);
+                                    printf("D1[i-1]: %lf, D1[i], %lf\n", D1[i-1], D1[i]);
+                                    printf("D2[i-1]: %lf, D2[i], %lf\n", D2[i-1], D2[i]);
+                                    printf("(%lf, %lf)\n", R[k], Spline(R[k], D1, E1, N));
+                                    printf("(%lf, %lf)", R[k], Spline(R[k], D2, E2, M));
+                                    return 0;
+                                }
+                        }
+                        else if (nums == 1)
+                            if ((left_border <= R[0]) and (R[0] <= right_border)) {
                                 print_array(a, 4);
                                 print_array(b, 4);
                                 printf("coefs: %lf, %lf, %lf, %lf\n", A, B, C, D);
                                 printf("left: %lf, right: %lf\n", left_border, right_border);
                                 printf("D1[i-1]: %lf, D1[i], %lf\n", D1[i-1], D1[i]);
                                 printf("D2[i-1]: %lf, D2[i], %lf\n", D2[i-1], D2[i]);
-                                printf("(%lf, %lf)\n", R[k], Spline(R[k], D1, E1, N));
-                                printf("(%lf, %lf)", R[k], Spline(R[k], D2, E2, M));
-                                return 0;
+                                printf("(%lf, %lf)\n", R[0], Spline(R[0], D1, E1, N));
+                                printf("(%lf, %lf)", R[0], Spline(R[0], D2, E2, M));
                             }
-                        }
+
+                        free(R);
                     } else if (B != 0) {
                         double* R = solve_sq_eq(B, C, D);
                         if (R[0] == 55.5)
