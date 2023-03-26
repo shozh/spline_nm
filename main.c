@@ -67,20 +67,16 @@ int solve_cubic_eq(double* x,double a,double b,double c) {
     }
 }
 
-double* solve_sq_eq(double a, double b, double c) {
+int solve_sq_eq(double* ret, double a, double b, double c) {
     double D = b * b - 4 * a * c;
-    double* ret = (double*)malloc(2 * sizeof(double));
-    if (D < 0) {
-        ret[0] = 55.5;
-        ret[1] = 55.5;
-        return ret;
-    }
+    if (D < 0)
+        return (0);
     else {
         double x1 = (-b + sqrt(D))/(2 * a);
         double x2 = (-b - sqrt(D))/(2 * a);
         ret[0] = x1;
         ret[1] = x2;
-        return ret;
+        return (2);
     }
 }
 
@@ -154,8 +150,8 @@ double Spline(double x, double* D, double* E, int N) {
     }
 }
 
-double* intersection_of_two_splines(int N, double* D1, double* E1, double* D2, double* E2) {
-    if ((D2[0] <= D1[N - 1]) or (D1[0] <= D2[N - 1])) {
+double intersection_of_two_splines(double* D1, double* E1, int N, double* D2, double* E2, int M) {
+    if ((D2[0] <= D1[N - 1]) or (D1[0] <= D2[M - 1])) {
         for (int i = 1; i < N; i++) {
             for (int j = 1; j < M; j++) {
                 double left_border = max(D1[i - 1], D2[j - 1]);
@@ -163,62 +159,43 @@ double* intersection_of_two_splines(int N, double* D1, double* E1, double* D2, d
                 if (left_border <= right_border) {
                     double *a = get_coefs(i, D1, E1, N);
                     double *b = get_coefs(j, D2, E2, M);
-                    double A = a[0] - b[0];
-                    double B = a[1] - b[1];
-                    double C = a[2] - b[2];
-                    double D = a[3] - b[3];
+                    double A = a[3] - b[3];
+                    double B = a[2] - b[2];
+                    double C = a[1] - b[1];
+                    double D = a[0] - b[0];
                     if (A != 0) {
-                        double R[3] = {0, 0, 0};
+                        double *R = (double*)malloc(3 * sizeof(double));
                         int nums = solve_cubic_eq(R, B/A, C/A, D/A);
-                        if (nums == 3)
-                            for (int k = 0; k < 3; k++) {
+                            for (int k = 0; k < nums; k++) {
                                 if ((left_border <= R[k]) and (R[k] <= right_border)) {
                                     print_array(a, 4);
                                     print_array(b, 4);
-                                    printf("coefs: %lf, %lf, %lf, %lf\n", A, B, C, D);
-                                    printf("left: %lf, right: %lf\n", left_border, right_border);
-                                    printf("D1[i-1]: %lf, D1[i], %lf\n", D1[i-1], D1[i]);
-                                    printf("D2[i-1]: %lf, D2[i], %lf\n", D2[i-1], D2[i]);
-                                    printf("(%lf, %lf)\n", R[k], Spline(R[k], D1, E1, N));
-                                    printf("(%lf, %lf)", R[k], Spline(R[k], D2, E2, M));
-                                    return 0;
+                                    printf("%.3lf, %.3lf, %.3lf, %.3lf\n", A, B, C, D);
+                                    printf("%.3lf, %.3lf\n", D1[i - 1], D1[i]);
+                                    printf("%.3lf, %.3lf\n", D2[j - 1], D2[j]);
+                                    return R[k];
                                 }
                             }
-                        else if (nums == 1)
-                            if ((left_border <= R[0]) and (R[0] <= right_border)) {
-                                print_array(a, 4);
-                                print_array(b, 4);
-                                printf("coefs: %lf, %lf, %lf, %lf\n", A, B, C, D);
-                                printf("left: %lf, right: %lf\n", left_border, right_border);
-                                printf("D1[i-1]: %lf, D1[i], %lf\n", D1[i-1], D1[i]);
-                                printf("D2[i-1]: %lf, D2[i], %lf\n", D2[i-1], D2[i]);
-                                printf("(%lf, %lf)\n", R[0], Spline(R[0], D1, E1, N));
-                                printf("(%lf, %lf)", R[0], Spline(R[0], D2, E2, M));
-                            }
-
                         free(R);
                     } else if (B != 0) {
-                        double* R = solve_sq_eq(B, C, D);
-                        if (R[0] == 55.5)
+                        double *R = (double*)malloc(2 * sizeof(double));
+                        int nums = solve_sq_eq(R, B, C, D);
+                        if (nums == 0)
                             continue;
                         for (int k = 0; k < 2; k++) {
                             if (left_border <= R[k] and R[k] <= right_border) {
-                                printf("(%lf, %lf)", R[k], Spline(R[k], D1, E1, N));
-                                return 0;
+                                return R[k];
                             }
                         }
+                        free(R);
                     } else if (C != 0) {
                         double v = C / D;
-                        if (left_border <= v and v <= right_border) {
-                            printf("(%lf, %lf)", v, Spline(v, D1, E1, N));
-                            return 0;
-                        }
+                        if (left_border <= v and v <= right_border)
+                            return v;
                     }
                 }
             }
         }
-        printf("There doesn't exist any intersection between these two splines within borders");
-    } else {
-        printf("There doesn't exist any intersection between these two splines within borders");
     }
+    return 404;
 }

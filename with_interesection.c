@@ -8,21 +8,7 @@
 #define M_2PI 2. * M_PI
 
 
-double h(double x) {
-    return (1/(5 - tan(x)));
-}
 
-double t(double x) {
-    return (1/(1+x));
-}
-
-double f(double x) {
-    return 1/(1 + x*x);
-}
-
-double g(double x) {
-    return 1/(1 + exp(-x));
-}
 
 double* solve_cubic_eq_not_worked(double a, double b, double c, double d) {
     double f = ((3 * c / a) - (b*b/(a * a)))/3;
@@ -203,24 +189,7 @@ double min(double x, double y) {
 
 int Program() {
 
-    const int N = 7;
-    const int M = 10;
-    double *D1 = (double *) malloc(N * sizeof(double));
-    double *E1 = (double *) malloc(N * sizeof(double));
-    double *D2 = (double *) malloc(M * sizeof(double));
-    double *E2 = (double *) malloc(M * sizeof(double));
 
-    for (int i = 0, j = -2; i < N; i++, j++)
-        D1[i] = j;
-
-    for (int i = 0; i < N; i++)
-        E1[i] = f(D1[i]);
-
-    for (int i = 0; i < M; i++)
-        D2[i] = i;
-
-    for (int i = 0; i < M; i++)
-        E2[i] = g(D2[i]);
 
     if ((D2[0] <= D1[N - 1]) or (D1[0] <= D2[N - 1])) {
         for (int i = 1; i < N; i++) {
@@ -284,7 +253,7 @@ int Program() {
                 }
             }
         }
-        printf("There doesn't exist any intersection between these two splines within borders");
+
     } else {
         printf("There doesn't exist any intersection between these two splines within borders");
     }

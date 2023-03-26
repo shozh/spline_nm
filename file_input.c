@@ -4,14 +4,16 @@
 #include <iso646.h>
 #include "main.c"
 
-
 double runge(double x) {
     return 1 / (1 + x * x);
 }
 
+double sigmoid(double x) {
+    return 1/(1 + exp(-x));
+}
 
 
-void Runge_starter() {
+int Runge_starter() {
 
     const int N = 7;
 
@@ -42,6 +44,44 @@ void Runge_starter() {
         printf("Spline(%.3lf) = %.3lf\n", x, Spline(x, D, E, N));
         printf("Error = %.3lf\n", fabs(Spline(x, D, E, N) - runge(x)));
     }
+    return 0;
+}
+
+int Runge_sigmoid_intersection() {
+
+    const int N = 7;
+    const int M = 10;
+    double *D1 = (double *) malloc(N * sizeof(double));
+    double *E1 = (double *) malloc(N * sizeof(double));
+    double *D2 = (double *) malloc(M * sizeof(double));
+    double *E2 = (double *) malloc(M * sizeof(double));
+
+
+    for (int i = 0; i < N; i++)
+        D1[i] = i;
+
+    for (int i = 0; i < N; i++)
+        E1[i] = runge(i);
+
+    for (int j = 0; j < M; j++)
+        D2[j] = j;
+
+    for (int j = 0; j < M; j++)
+        E2[j] = sigmoid(j);
+
+    double x = intersection_of_two_splines(D1, E1, N, D2, E2, N);
+    if (x == 404)
+        printf("There doesn't exist any intersection between these two splines within borders");
+    else {
+        printf("First spline: (%lf, %lf)\n", x, Spline(x, D1, E1, N));
+        printf("Second spline: (%lf, %lf)", x, Spline(x, D2, E2, M));
+    }
+    return 0;
+}
+
+int main() {
+    Runge_sigmoid_intersection();
+    //Runge_starter();
     return 0;
 }
 
